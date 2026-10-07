@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北アメリカ・メソアメリカ神話・伝承コーデックス</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Papyrus feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        papyrus: '#FDFBF7',
+                        parchment: '#F5EFE0',
+                        agedGold: '#EEDC9A',
+                        sand: '#C8B082',
+                        inkLight: '#5C3A21',
+                        inkDark: '#3D2314',
+                        accentRed: '#8B261A',
+                        accentBlue: '#2A4D69'
+                    },
+                    fontFamily: {
+                        serif: ['Shippori Mincho', 'Cinzel', 'serif'],
+                        display: ['Cinzel', 'Shippori Mincho', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #3D2314;
+            color: #3D2314;
+            font-family: 'Shippori Mincho', serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .bg-papyrus-texture {
+            background-color: #F5EFE0;
+            background-image: 
+                radial-gradient(#C8B082 0.75px, transparent 0.75px),
+                radial-gradient(#3D2314 0.75px, #F5EFE0 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            background-blend-mode: multiply;
+        }
+
+        .vignette-overlay {
+            box-shadow: inset 0 0 100px rgba(61, 35, 20, 0.6), inset 0 0 20px rgba(61, 35, 20, 0.8);
+            pointer-events: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #EEDC9A;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #5C3A21;
+            border-radius: 3px;
+        }
+
+        .marker-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.25); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* SVG Map Styling */
+        .land-mass {
+            fill: #EEDC9A;
+            stroke: #5C3A21;
+            stroke-width: 1.5;
+            filter: drop-shadow(2px 3px 0px rgba(61, 35, 20, 0.15));
+        }
+        .sea-bg {
+            fill: #F5EFE0;
+        }
+        .border-line {
+            stroke: #8B261A;
+            stroke-width: 1;
+            stroke-dasharray: 4, 3;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between relative overflow-hidden">
+
+    <!-- Top Header Navigation -->
+    <header class="absolute top-0 left-0 right-0 z-30 bg-papyrus/90 backdrop-blur border-b-2 border-inkLight/30 px-4 py-3 flex flex-wrap items-center justify-between shadow-md">
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid me-2 fa-compass text-2xl text-accentRed"></i>
+            <div>
+                <h1 class="font-display font-bold text-lg md:text-xl text-inkDark tracking-wider">北米・メソアメリカ伝承図鑑</h1>
+                <p class="text-xs text-inkLight hidden sm:block">神々と怪物の古代羊皮紙地図 (USA・カナダ・メキシコ・カリブ海)</p>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex items-center space-x-2 mt-2 sm:mt-0 text-xs md:text-sm">
+            <div class="relative">
+                <input type="text" id="searchInput" placeholder="名前・種族を検索..." 
+                    class="bg-parchment border border-inkLight/40 rounded-full px-3 py-1 text-inkDark placeholder-inkLight/60 focus:outline-none focus:border-accentRed w-36 sm:w-48 transition-all">
+                <i class="fa-solid fa-search absolute right-3 top-2 text-inkLight/60"></i>
+            </div>
+            
+            <select id="typeFilter" class="bg-parchment border border-inkLight/40 rounded-lg px-2 py-1 text-inkDark focus:outline-none focus:border-accentRed">
+                <option value="all">全種別 (80体)</option>
+                <option value="monster">怪物 (40体)</option>
+                <option value="god">神々 (40柱)</option>
+            </select>
+
+            <select id="regionFilter" class="bg-parchment border border-inkLight/40 rounded-lg px-2 py-1 text-inkDark focus:outline-none focus:border-accentRed">
+                <option value="all">全地域</option>
+                <option value="USA">USA</option>
+                <option value="Canada">カナダ</option>
+                <option value="Mexico">メキシコ</option>
+                <option value="Caribbean">カリブ海</option>
+            </select>
+
+            <button id="openRefBtn" class="bg-inkLight text-papyrus px-3 py-1 rounded-lg hover:bg-inkDark transition flex items-center gap-1 shadow">
+                <i class="fa-solid fa-book-open"></i> <span class="hidden md:inline">参考文献</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Interactive Map Viewport -->
+    <main class="relative w-full h-full overflow-hidden cursor-grab active:cursor-grabbing bg-parchment" id="mapViewport">
+        <!-- Vignette & Hieroglyphic Border Layer -->
+        <div class="absolute inset-0 vignette-overlay z-20"></div>
+        
+        <!-- Papyrus Map Container (Draggable / Zoomable) -->
+        <div id="mapContainer" class="absolute origin-top-left transition-transform duration-75 ease-out" style="transform: translate(0px, 0px) scale(1);">
+            
+            <!-- SVG Hand-Drawn Map (Ancient Egyptian/Papyrus Styling) -->
+            <svg id="svgMap" width="1800" height="1300" viewBox="0 0 1800 1300" class="select-none">
+                <defs>
+                    <!-- Papyrus Pattern Texture -->
+                    <pattern id="papyrusPattern" width="200" height="200" patternUnits="userSpaceOnUse">
+                        <path d="M0,0 L200,200 M200,0 L0,200" stroke="#C8B082" stroke-width="0.3" opacity="0.15"/>
+                        <path d="M100,0 L100,200 M0,100 L200,100" stroke="#5C3A21" stroke-width="0.2" opacity="0.1"/>
+                    </pattern>
+                    <!-- Wave Pattern for Oceans -->
+                    <pattern id="wavePattern" width="40" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M0 10 Q 10 5, 20 10 T 40 10" fill="none" stroke="#C8B082" stroke-width="0.8" opacity="0.4"/>
+                    </pattern>
+                </defs>
+
+                <!-- Ocean Base -->
+                <rect width="10000" height="10000" x="-4000" y="-4000" class="sea-bg"/>
+                <rect width="10000" height="10000" x="-4000" y="-4000" fill="url(#wavePattern)"/>
+                <rect width="10000" height="10000" x="-4000" y="-4000" fill="url(#papyrusPattern)"/>
+
+                <!-- Ancient Map Grid Lines -->
+                <g stroke="#C8B082" stroke-width="0.5" opacity="0.3" stroke-dasharray="8,8">
+                    <line x1="0" y1="300" x2="1800" y2="300"/>
+                    <line x1="0" y1="650" x2="1800" y2="650"/>
+                    <line x1="0" y1="1000" x2="1800" y2="1000"/>
+                    <line x1="400" y1="0" x2="400" y2="1300"/>
+                    <line x1="900" y1="0" x2="900" y2="1300"/>
+                    <line x1="1400" y1="0" x2="1400" y2="1300"/>
+                </g>
+
+                <!-- LANDMASSES -->
+                <!-- North America Mainland (Canada + USA) -->
+                <path d="M 200,150 Q 400,100 800,80 Q 1100,60 1400,120 Q 1600,250 1500,450 Q 1400,550 1200,600 Q 1100,650 1000,750 Q 950,850 850,900 L 750,850 L 700,750 L 600,700 L 500,600 L 300,500 L 150,350 Z" class="land-mass"/>
+
+                <!-- Florida Peninsula -->
+                <path d="M 1150,600 Q 1200,630 1220,700 Q 1210,750 1180,760 Q 1150,720 1130,640 Z" class="land-mass"/>
+
+                <!-- Baja California Peninsula -->
+                <path d="M 500,600 Q 480,700 450,780 Q 430,780 440,730 Q 470,650 490,590 Z" class="land-mass"/>
+
+                <!-- Mexico & Central America -->
+                <path d="M 700,750 Q 800,850 900,900 Q 980,950 1050,1050 Q 1020,1080 950,1020 Q 850,950 750,880 Z" class="land-mass"/>
+
+                <!-- Yukon & Alaska Extension -->
+                <path d="M 200,150 Q 100,120 50,200 Q 100,280 200,300 Z" class="land-mass"/>
+
+                <!-- Caribbean Islands (Cuba, Hispaniola, Puerto Rico, Jamaica) -->
+                <!-- Cuba -->
+                <path d="M 1200,760 Q 1300,770 1350,780 Q 1340,800 1250,790 Z" class="land-mass"/>
+                <!-- Hispaniola -->
+                <path d="M 1370,785 Q 1440,790 1450,810 Q 1390,820 1360,800 Z" class="land-mass"/>
+                <!-- Puerto Rico & Lesser Antilles -->
+                <path d="M 1470,810 Q 1500,815 1510,825 Q 1490,830 1465,820 Z" class="land-mass"/>
+                <circle cx="1520" cy="850" r="10" class="land-mass"/>
+                <circle cx="1510" cy="880" r="8" class="land-mass"/>
+
+                <!-- Region Borders (Stylized Antique Lines) -->
+                <!-- US / Canada Border (~49th Parallel) -->
+                <path d="M 250,380 Q 700,380 1350,380" class="border-line"/>
+                <!-- US / Mexico Border -->
+                <path d="M 490,590 Q 700,680 1130,640" class="border-line"/>
+
+                <!-- Region Labels (Antique Typography) -->
+                <text x="750" y="260" font-family="Cinzel" font-size="28" font-weight="bold" fill="#5C3A21" opacity="0.6" letter-spacing="8">CANADA</text>
+                <text x="800" y="520" font-family="Cinzel" font-size="32" font-weight="bold" fill="#5C3A21" opacity="0.6" letter-spacing="10">UNITED STATES</text>
+                <text x="700" y="820" font-family="Cinzel" font-size="26" font-weight="bold" fill="#5C3A21" opacity="0.6" letter-spacing="6">MEXICO</text>
+                <text x="1320" y="730" font-family="Cinzel" font-size="22" font-weight="bold" fill="#5C3A21" opacity="0.6" letter-spacing="4">CARIBBEAN SEA</text>
+
+                <!-- Mountain Ridge Illustrations -->
+                <g stroke="#5C3A21" stroke-width="1.2" fill="none" opacity="0.7">
+                    <!-- Rockies -->
+                    <path d="M 450,300 L 465,270 L 480,300 M 475,285 L 490,250 L 505,285 M 500,270 L 515,240 L 530,270 M 520,290 L 535,260 L 550,290"/>
+                    <path d="M 550,400 L 565,360 L 580,400 M 575,380 L 590,340 L 605,380 M 600,370 L 615,330 L 630,370"/>
+                    <!-- Appalachians -->
+                    <path d="M 1200,450 L 1210,430 L 1220,450 M 1215,440 L 1225,420 L 1235,440 M 1230,445 L 1240,425 L 1250,445"/>
+                    <!-- Sierra Madre Mexico -->
+                    <path d="M 680,760 L 690,740 L 700,760 M 695,750 L 705,730 L 715,750 M 730,800 L 740,780 L 750,800"/>
+                </g>
+
+                <!-- Ancient Egyptian / Sea Monster Illustrations -->
+                <g stroke="#5C3A21" stroke-width="1.2" fill="none" opacity="0.5">
+                    <!-- Sea Serpent in Atlantic -->
+                    <path d="M 1550,450 Q 1580,420 1610,450 T 1670,450 Q 1690,420 1670,400 Q 1640,410 1630,390"/>
+                    <circle cx="1665" cy="405" r="1.5" fill="#5C3A21"/>
+                    <text x="1560" y="480" font-family="Cinzel" font-size="10" fill="#5C3A21">MONSTRUM MARIS</text>
+
+                    <!-- Ancient Ship / Canoe -->
+                    <path d="M 250,750 Q 300,780 350,750 L 340,740 L 260,740 Z M 300,740 L 300,700 L 320,720 Z"/>
+                </g>
+
+                <!-- Grand Egyptian Compass Rose -->
+                <g transform="translate(1500, 1000)">
+                    <!-- Outer Rings -->
+                    <circle cx="0" cy="0" r="90" stroke="#5C3A21" stroke-width="2" fill="none"/>
+                    <circle cx="0" cy="0" r="82" stroke="#5C3A21" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
+                    <circle cx="0" cy="0" r="40" stroke="#8B261A" stroke-width="1" fill="none"/>
+                    
+                    <!-- Points -->
+                    <polygon points="0,-110 12,-30 0,0 -12,-30" fill="#8B261A"/>
+                    <polygon points="0,110 12,30 0,0 -12,30" fill="#5C3A21"/>
+                    <polygon points="110,0 30,12 0,0 30,-12" fill="#5C3A21"/>
+                    <polygon points="-110,0 -30,12 0,0 -30,-12" fill="#5C3A21"/>
+
+                    <polygon points="60,-60 20,-10 0,0 10,-20" fill="#C8B082"/>
+                    <polygon points="-60,-60 -20,-10 0,0 -10,-20" fill="#C8B082"/>
+                    <polygon points="60,60 20,10 0,0 10,20" fill="#C8B082"/>
+                    <polygon points="-60,60 -20,10 0,0 -10,20" fill="#C8B082"/>
+
+                    <!-- Direction Letters -->
+                    <text x="-6" y="-118" font-family="Cinzel" font-size="18" font-weight="bold" fill="#8B261A">N</text>
+                    <text x="-5" y="132" font-family="Cinzel" font-size="18" font-weight="bold" fill="#5C3A21">S</text>
+                    <text x="120" y="6" font-family="Cinzel" font-size="18" font-weight="bold" fill="#5C3A21">E</text>
+                    <text x="-138" y="6" font-family="Cinzel" font-size="18" font-weight="bold" fill="#5C3A21">W</text>
+                </g>
+
+                <!-- Hieroglyphic Antique Map Border Frame -->
+                <rect x="10" y="10" width="1780" height="1280" fill="none" stroke="#5C3A21" stroke-width="4"/>
+                <rect x="20" y="20" width="1760" height="1260" fill="none" stroke="#5C3A21" stroke-width="1.5" stroke-dasharray="10,5"/>
+            </svg>
+
+            <!-- Dynamic Pin Markers Container -->
+            <div id="markersLayer" class="absolute inset-0 pointer-events-none">
+                <!-- Markers will be rendered programmatically by JavaScript -->
+            </div>
+        </div>
+
+        <!-- On-screen Map Navigation Controls -->
+        <div class="absolute bottom-6 right-6 z-30 flex flex-col gap-2">
+            <button id="zoomInBtn" class="w-10 h-10 bg-papyrus border-2 border-inkLight rounded-full text-inkDark hover:bg-agedGold flex items-center justify-center shadow-lg text-lg font-bold">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button id="zoomOutBtn" class="w-10 h-10 bg-papyrus border-2 border-inkLight rounded-full text-inkDark hover:bg-agedGold flex items-center justify-center shadow-lg text-lg font-bold">
+                <i class="fa-solid fa-minus"></i>
+            </button>
+            <button id="resetViewBtn" class="w-10 h-10 bg-papyrus border-2 border-inkLight rounded-full text-inkDark hover:bg-agedGold flex items-center justify-center shadow-lg text-sm font-bold" title="全体を表示">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+        </div>
+
+        <!-- Legend / Key Overlay -->
+        <div class="absolute bottom-6 left-6 z-30 bg-papyrus/90 backdrop-blur border border-inkLight/40 p-3 rounded-lg shadow-lg text-xs max-w-xs hidden md:block">
+            <h4 class="font-bold text-inkDark border-b border-inkLight/30 pb-1 mb-2 flex items-center gap-1">
+                <i class="fa-solid fa-map-signs text-accentRed"></i> 地図凡例
+            </h4>
+            <div class="flex items-center gap-3 mb-1">
+                <span class="w-4 h-4 rounded-full bg-accentRed border border-papyrus inline-block shadow"></span>
+                <span>怪物 (Monsters / 10体×4地域)</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="w-4 h-4 rounded-full bg-accentBlue border border-papyrus inline-block shadow"></span>
+                <span>神々 (Deities / 10柱×4地域)</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Detail Drawer / Modal -->
+    <div id="detailDrawer" class="fixed inset-y-0 right-0 w-full md:w-[500px] bg-papyrus border-l-4 border-inkDark shadow-2xl z-40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <!-- Drawer Header -->
+        <div class="bg-parchment p-4 border-b border-inkLight/30 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span id="drawerBadge" class="px-2 py-0.5 rounded text-xs text-white font-bold bg-accentRed">怪物</span>
+                <h2 id="drawerRegionTitle" class="font-bold text-lg text-inkDark">アメリカ合衆国</h2>
+            </div>
+            <button id="closeDrawerBtn" class="text-inkLight hover:text-accentRed text-xl p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Entity Tabs (Monsters vs Deities) -->
+        <div class="flex border-b border-inkLight/30 bg-papyrus">
+            <button id="tabMonsters" class="flex-1 py-2.5 font-bold text-sm text-center border-b-2 border-accentRed text-accentRed bg-parchment/50">
+                <i class="fa-solid fa-dragon me-1"></i> 怪物 (10体)
+            </button>
+            <button id="tabDeities" class="flex-1 py-2.5 font-bold text-sm text-center text-inkLight hover:text-inkDark">
+                <i class="fa-solid fa-sun me-1"></i> 神々 (10柱)
+            </button>
+        </div>
+
+        <!-- Entity Scrollable List -->
+        <div id="drawerContent" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+            <!-- Dynamic Content Injected Here -->
+        </div>
+    </div>
+
+    <!-- Bibliography / Reference Modal -->
+    <div id="refModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-papyrus border-2 border-inkDark rounded-xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button id="closeRefBtn" class="absolute top-4 right-4 text-inkLight hover:text-accentRed text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h3 class="text-xl font-bold text-inkDark border-b-2 border-inkLight/30 pb-2 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-book text-accentRed"></i> 参考文献・資料典拠
+            </h3>
+
+            <div class="space-y-4 text-sm text-inkDark">
+                <div>
+                    <h4 class="font-bold text-accentRed mb-1"><i class="fa-solid fa-book-bookmark me-1"></i> 書籍典拠</h4>
+                    <ul class="list-disc list-inside space-y-2 bg-parchment p-3 rounded border border-inkLight/20 text-xs">
+                        <li><strong>Dictionary of Native American Mythology</strong><br>Sam D. Gill, Irene F. Sullivan (1994年12月1日出版、2026年9月27日参照)</li>
+                        <li><strong>アメリカ先住民の神話と伝承</strong><br>阿部珠理 (2010年4月20日出版、2026年9月27日参照)</li>
+                        <li><strong>Feathered Serpent, Dark Heart of Sky: Myths of Mexico</strong><br>David Bowles (2018年5月15日出版、2026年9月27日参照)</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-accentRed mb-1"><i class="fa-solid fa-globe me-1"></i> ウェブサイト典拠</h4>
+                    <ul class="list-disc list-inside space-y-2 bg-parchment p-3 rounded border border-inkLight/20 text-xs">
+                        <li>
+                            <strong>Mythologies of the Indigenous peoples of the Americas</strong><br>
+                            Britannica Editors, Encyclopædia Britannica (2024年1月10日公開)<br>
+                            <a href="https://www.britannica.com/art/mythologies-of-the-Indigenous-peoples-of-the-Americas" target="_blank" class="text-accentBlue underline break-all">https://www.britannica.com/art/mythologies-of-the-Indigenous-peoples-of-the-Americas</a>
+                        </li>
+                        <li>
+                            <strong>Native American Mythology Pantheon</strong><br>
+                            Godchecker (2023年8月15日公開)<br>
+                            <a href="https://www.godchecker.com/native-american-mythology/pantheon/" target="_blank" class="text-accentBlue underline break-all">https://www.godchecker.com/native-american-mythology/pantheon/</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button id="closeRefModalBtn" class="bg-inkDark text-papyrus px-6 py-2 rounded-lg hover:bg-inkLight transition font-bold text-sm">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* Comprehensive Mythology Dataset */
+        const mythologyData = {
+            USA: {
+                name: "アメリカ合衆国 (USA)",
+                coords: { x: 800, y: 500 },
+                monsters: [
+                    { name: "ウェンディゴ", nativeName: "Wendigo", location: "アメリカ合衆国（北部・五大湖周辺）", content: "人間を襲って貪り喰う、氷のように冷たく異常に痩せた巨人の怪物。", origin: "極度の飢餓や欲望に負けて人肉を口にした人間が呪われ、悪霊に取り憑かれて変貌した。" },
+                    { name: "スキンウォーカー", nativeName: "Skinwalker", location: "アメリカ合衆国（南西部・ナバホ居留区）", content: "動物の皮を被ることでその姿に変身し、人々に病や恐怖をもたらす悪の術師。", origin: "禁忌とされる闇の魔術を学び、肉親を犠牲にするなどの儀式を経て変貌した。" },
+                    { name: "フライング・ヘッド", nativeName: "Flying Head / Kanontsistonties", location: "アメリカ合衆国（北東部・イロコイ伝承）", content: "口から炎を吹き、絡み合った長い髪と鋭い牙を持つ巨大な生首の怪物。", origin: "飢饉の際に殺害された長老たちの首が怨念によって合体・肥大化した。" },
+                    { name: "ウンテナ", nativeName: "Uktena", location: "アメリカ合衆国（南東部・チェロキー伝承）", content: "額に輝く結晶を持ち、強力な毒と視線で人を死に至らしめる巨大な角付き蛇。", origin: "太陽の女神を殺害するために神々によって作られたが、任務に失敗し怪物化した。" },
+                    { name: "オンセギラ", nativeName: "Uncegila", location: "アメリカ合衆国（グレートプレーンズ・ラコタ伝承）", content: "土地を荒らし、触れた者を粘液で溶かす巨大な龍状の水魔。", origin: "太古の混沌の時代に原初の大地から自然発生した闇の存在。" },
+                    { name: "ウィシュプッシュ", nativeName: "Wishpoosh", location: "アメリカ合衆国（太平洋西北部・チヌーク伝承）", content: "鋭い爪を持ち、川の水量を自在に操作して人を溺れさせる巨大なビーバーの怪物。", origin: "太古の時代、怪物たちが世界を支配していた頃に自然界の巨大な力から生まれた。" },
+                    { name: "ピアサ・バード", nativeName: "Piasa Bird", location: "アメリカ合衆国（中西部・イリノイ伝承）", content: "鹿の角、赤い目、人の顔、ウロコに覆われた体を持つ鳥型の怪物。", origin: "ミシシッピ川沿いの崖の洞窟に太古から生息していた悪霊の化身。" },
+                    { name: "イヤ", nativeName: "Iya", location: "アメリカ合衆国（中北部・ラコタ伝承）", content: "村全体や人間を丸呑みにする暴食を司る巨大な嵐の怪物。", origin: "邪悪な悪霊ロッカの悪意と負のエネルギーから誕生した。" },
+                    { name: "チェフェロ", nativeName: "Chenoo", location: "アメリカ合衆国（北東部・ミクマク伝承）", content: "心臓が氷でできており、恐ろしい叫び声で人を狂わせる喰人巨人。", origin: "大変な恐怖や背徳的行為によって、人間の心臓が凍りついて怪物化した。" },
+                    { name: "アポタムキン", nativeName: "Apotamkin", location: "アメリカ合衆国（北東部・パサマクディ伝承）", content: "長い赤髪と巨大な牙を持ち、水辺に近づく人間を引きずり込む海の蛇型怪物。", origin: "人間が禁忌を破って水辺の魔力に触れたことで変貌した。" }
+                ],
+                gods: [
+                    { name: "ワカン・タンカ", nativeName: "Wakan Tanka", location: "アメリカ合衆国（グレートプレーンズ・ラコタ伝承）", content: "万物に宿る不可不思議な力であり、宇宙と生命を包括するグレート・スピリット（偉大なる霊）。", origin: "始めも終わりもなく、宇宙の始まりから自立して存在する原初神。" },
+                    { name: "ココペリ", nativeName: "Kokopelli", location: "アメリカ合衆国（南西部・ホピ/ズニ伝承）", content: "笛を吹き、背中に種を担いで豊作と子宝をもたらす精霊・神。", origin: "大地と太陽の交わりの中から、生命の循環を促すために誕生した。" },
+                    { name: "ホワイト・バッファロー・カーフ・ウーマン", nativeName: "White Buffalo Calf Woman", location: "アメリカ合衆国（グレートプレーンズ・ラコタ伝承）", content: "人々に聖なるパイプと正しい生き方、儀式を授けた平和の女神。", origin: "飢餓に苦しむ人々を救うため、ワカン・タンカの使者として聖なる白いバッファローから変化して現れた。" },
+                    { name: "スパイダー・ウーマン", nativeName: "Spider Woman / Kohyangwuti", location: "アメリカ合衆国（南西部・ホピ/ナバホ伝承）", content: "地球と人間を創造し、織物や生活の知恵を教えた知識の女神。", origin: "太陽神タワの意志を受け、大地の物質から思考によって自らを誕生させた。" },
+                    { name: "ツィチテナコ", nativeName: "Tsichtinako", location: "アメリカ合衆国（南西部・アコマ・プエブロ伝承）", content: "宇宙の創造主であり、思考することによってすべての万物を生み出す思考の女神。", origin: "原初の暗闇（地下世界）の中に存在した意識そのものから発生した。" },
+                    { name: "チェンジング・ウーマン", nativeName: "Changing Woman / Estanatlehi", location: "アメリカ合衆国（南西部・ナバホ伝承）", content: "四季の移り変わりや自然の再生を象徴し、人間を創造した女神。", origin: "第一の男と第一の女によって、聖なる山で発見され育てられた。" },
+                    { name: "ティラワ", nativeName: "Tirawa", location: "アメリカ合衆国（中北部・ポーニー伝承）", content: "天空の最高神であり、星々に命を与えて地上を管理させる創造主。", origin: "宇宙の虚無の中に最初に存在し、自らの意志で天体と世界を創造した。" },
+                    { name: "ヘノ", nativeName: "Hino / Hinu", location: "アメリカ合衆国（北東部・イロコイ伝承）", content: "恵みの雨を降らせ、邪悪な蛇の化け物を雷で退治する雷神。", origin: "偉大なる精神ハグウェディユが世界を整える際に空の守護者として生み出した。" },
+                    { name: "グルスカップ", nativeName: "Gluskap", location: "アメリカ合衆国（北東部・アベナキ伝承）", content: "人間を怪物から守り、景観を作り整えた文化英雄・人間保護神。", origin: "母なる大地の生誕時に、善良な心を持って自力で生まれてきた。" },
+                    { name: "ガオ", nativeName: "Gaoh", location: "アメリカ合衆国（北東部・イロコイ伝承）", content: "四方の風を巨大な洞窟に繋ぎ止め、天候を制御する風の神。", origin: "世界の秩序を保つために最高神によって配属された風の統制者。" }
+                ]
+            },
+            Canada: {
+                name: "カナダ (Canada)",
+                coords: { x: 750, y: 250 },
+                monsters: [
+                    { name: "アマロック", nativeName: "Amarok", location: "カナダ（北極圏・イヌイット伝承）", content: "夜間に一人で狩りをする愚かな人間を襲って食い殺す巨大な狼の怪物。", origin: "大自然の掟を破る人間を淘汰・罰するために神々によって生み出された。" },
+                    { name: "クイパルーク", nativeName: "Qalupalik", location: "カナダ（北極圏・イヌイット伝承）", content: "緑色の皮膚と長い爪を持ち、氷の割れ目から子供をさらって背中のアマルティ（背負子）に詰める水妖。", origin: "危険な氷上に近づく子供たちへの警告として、海の深い闇から生まれた。" },
+                    { name: "シシウトル", nativeName: "Sisiutl", location: "カナダ（西海岸・クワクワカワク伝承）", content: "中央に人間の顔、両端に蛇の頭を持つ双頭の海蛇。見つめた者を石に変える。", origin: "超自然的な力と海の魔力が実体化して誕生した。" },
+                    { name: "マハハ", nativeName: "Mahaahaa", location: "カナダ（北極圏・イヌイット伝承）", content: "落ちくぼんだ目と痩せた体を持ち、鋭い爪で人間をくすぐり倒して凍死させる悪魔。", origin: "北極の苛酷な冷気と孤独から発生した不気味な精神体。" },
+                    { name: "イクパルポク", nativeName: "Ijiraq", location: "カナダ（北極圏・イヌイット伝承）", content: "人間や動物に姿を変え、旅人を幻惑して永久に迷子にさせる姿を変える怪物。", origin: "蜃気楼や吹雪による迷妄の現象が形をとって怪物化した。" },
+                    { name: "ケーカン", nativeName: "Kukwes", location: "カナダ（東部・ミクマク伝承）", content: "毛深く巨大で、猛烈な力で人間を捕食する森の巨人。", origin: "太古の森の鬱蒼とした闇と荒々しい自然の象徴として生まれた。" },
+                    { name: "トゥピラク", nativeName: "Tupilaq", location: "カナダ（北極圏・イヌイット伝承）", content: "呪術師が動物の骨や皮膚を繋ぎ合わせて作り出す、敵を殺害するためのキメラ怪物。", origin: "シャーマンが禁断の秘術の儀式によって人工的に創造した。" },
+                    { name: "アキイイニ", nativeName: "Ahkiyyini", location: "カナダ（北極圏・イヌイット伝承）", content: "自分の腕の骨をバチにして肋骨を叩き、強烈な地震を起こして人を死に追いやる骸骨の悪霊。", origin: "無念の死を遂げた人間の死霊が怨念により変貌した。" },
+                    { name: "メメグウェシ", nativeName: "Memegwesi", location: "カナダ（中部・オジブウェ伝承）", content: "毛深く顔が非常に狭い小人。川の崖に住み、旅人の舟を転覆させる。", origin: "人間より前に世界に存在していた、大地の隙間に残された原初種族。" },
+                    { name: "タリアクスニク", nativeName: "Tariaksuq", location: "カナダ（北極圏・イヌイット伝承）", content: "影しか見えず、人間が直接目視しようとすると消えてしまう影の怪物。", origin: "現実世界と霊界の境目にある異次元の歪みから生じた。" }
+                ],
+                gods: [
+                    { name: "セドナ", nativeName: "Sedna", location: "カナダ（北極圏・イヌイット伝承）", content: "海底に住み、海のアザラシやクジラなどの海洋生物を統括する海の女神。", origin: "人間の少女だったが、海に突き落とされ、切られた指が海の動物になり自身は海の主となった。" },
+                    { name: "レイヴン", nativeName: "Raven / ワタリガラス", location: "カナダ（西海岸・ハイダ/トリンギット伝承）", content: "太陽や火を盗んで人間に与えたトリックスターであり、世界を整えた創造神。", origin: "原初の暗闇の中で、自らの知恵と好奇心によって発生した。" },
+                    { name: "ナナボーゾ", nativeName: "Nanabozho", location: "カナダ（東部/中部・オジブウェ伝承）", content: "人間に薬草や医学、文字を教えたウサギの姿をとる文化英雄神。", origin: "大地の精霊（母）と西風の神（父）の間に誕生した。" },
+                    { name: "イガルク", nativeName: "Igaluk", location: "カナダ（北極圏・イヌイット伝承）", content: "太陽神である妹を追いかけて空を巡り、潮の満ち引きを司る月の神。", origin: "人間界の出来事から空へ逃れ、月としての神格を得た。" },
+                    { name: "マリカ", nativeName: "Malina", location: "カナダ（北極圏・イヌイット伝承）", content: "月神である兄から逃れるために松明を持って空へ登り、世界を照らす太陽の女神。", origin: "人間界での事件をきっかけに空へと駆け昇り、太陽の光となった。" },
+                    { name: "ギッチ・マニトゥ", nativeName: "Gitche Manitou", location: "カナダ（東部・アルゴンキン伝承）", content: "万物の創造主であり、すべての生命に宿る偉大な精霊の源泉。", origin: "時間以前の無から、自らの思考によって自らを存在させた。" },
+                    { name: "クルスカップ", nativeName: "Kluskap", location: "カナダ（東部・ミクマク伝承）", content: "巨人を退治し、土地を人が住みやすいように作り替えた慈悲深い創造神。", origin: "稲妻が大気を打った際、土から形作られて誕生した。" },
+                    { name: "トルンガスック", nativeName: "Torngarsak", location: "カナダ（北極圏・イヌイット伝承）", content: "シャーマンたちに力を与え、健康や狩猟の成否を司る最高峰の強力な精霊。", origin: "自然界のすべてのスピリチュアルなエネルギーが凝縮して成立した。" },
+                    { name: "ツェラホン", nativeName: "Dzelarhons", location: "カナダ（西海岸・ハイダ伝承）", content: "火山や蛙、自然の法則に対する敬意を司る大地の守護女神。", origin: "礼儀を忘れた人々に立腹した地球の意志が、一人の女性の姿をとって顕現した。" },
+                    { name: "テケイツェルトク", nativeName: "Tekkeitsertok", location: "カナダ（北極圏・イヌイット伝承）", content: "カリブー（トナカイ）や狩猟、土地の肥沃さを司る大地の神。", origin: "人間の生存に必要な肉と皮を供給するため、北方の大地から発生した。" }
+                ]
+            },
+            Mexico: {
+                name: "メキシコ (Mexico)",
+                coords: { x: 750, y: 820 },
+                monsters: [
+                    { name: "シパクトリ", nativeName: "Cipactli", location: "メキシコ（中央高地・アステカ伝承）", content: "すべての関節に口を持つ、貪欲で巨大なワニとカエルが合体したような原初怪物。", origin: "世界の創造以前、原初の渾沌の海に浮かんでいた唯一の生命体。" },
+                    { name: "アウィゾトル", nativeName: "Ahuizotl", location: "メキシコ（中央高地・アステカ伝承）", content: "尻尾の先に人間の手があり、人の泣き真似で誘い出して水中に引きずり込む犬状の怪物。", origin: "水神トラロックの使いであり、魂を聖域へ送る者として生み出された。" },
+                    { name: "ナワール", nativeName: "Nahual", location: "メキシコ全域（マヤ/アステカ伝承）", content: "夜間にジャガーや大きな犬に姿を変え、家畜を襲ったり呪いをかける変身怪物。", origin: "生まれた日の持つ霊力と、闇の呪術を修めた者が変化する。" },
+                    { name: "カマソッツ", nativeName: "Camazotz", location: "メキシコ南部（マヤ伝承）", content: "鋭いナイフのような鼻を持ち、首を切り落とす地下世界の殺人コウモリ。", origin: "地下世界シバルバーの暗黒と死の気配から発生した。" },
+                    { name: "シウコアトル", nativeName: "Xiuhcoatl", location: "メキシコ（中央高地・アステカ伝承）", content: "口から凄まじい炎を噴き出す、灼熱の火の蛇。", origin: "太陽神ウィツィロポチトリが誕生した際、武器として自らの手で誕生させた。" },
+                    { name: "ツィツィミトル", nativeName: "Tzitzimitl", location: "メキシコ（中央高地・アステカ伝承）", content: "日食の際や世界終末の日に空から降ってくる星の骸骨悪魔。", origin: "太陽が滅びた時の暗黒空間から生み出された存在。" },
+                    { name: "クカカン", nativeName: "Cucuy", location: "メキシコ全域", content: "暗闇に潜み、言い付けを守らない子供を袋に詰めて連れ去る影の怪物。", origin: "伝承上の恐怖心と子供を戒めるための古代からの教えが具現化した。" },
+                    { name: "トリコアトル", nativeName: "Tlilcoatl", location: "メキシコ（中央高地・アステカ伝承）", content: "太い黒蛇で、二股の尻尾を相手の鼻穴に突き刺して窒息死させる恐怖の蛇。", origin: "湖や湿地帯の暗部で長年生き抜いた大蛇が魔力を得た。" },
+                    { name: "シバルバーの使者", nativeName: "Xibalban demon", location: "メキシコ南部（マヤ伝承）", content: "病気や苦痛を人間にまき散らす、腐敗した死体の姿をした地下世界の使者。", origin: "死と病気、腐敗の概念が地下の王たちの手によって実体化された。" },
+                    { name: "ヨワルテプツトリ", nativeName: "Youaltepuztli", location: "メキシコ（中央高地・アステカ伝承）", content: "胸が叩き割れており、胸を打つ音が斧で木を切る音のように響く首なし死体の怪物。", origin: "夜の神テスカトリポカが人間を試すための試練として出現させる化身。" }
+                ],
+                gods: [
+                    { name: "ケツァルコアトル", nativeName: "Quetzalcoatl", location: "メキシコ（中央高地・アステカ伝承）", content: "風、知恵、文化、農耕を司る羽毛ある蛇の神。人間にトウモロコシを与えた。", origin: "原初神オメテオトルの四男として宇宙の開闢時に誕生した。" },
+                    { name: "テスカトリポカ", nativeName: "Tezcatlipoca", location: "メキシコ（中央高地・アステカ伝承）", content: "夜の空、煙る鏡、魔法、運命を司る全能の神。", origin: "原初神オメテオトルから直接生み出された息子の神の一柱。" },
+                    { name: "トラロック", nativeName: "Tlaloc", location: "メキシコ（中央高地・アステカ伝承）", content: "恵みの雨をもたらす一方で、雷や干ばつの猛威も振るう雨神。", origin: "世界創造の初めに大地と空が分離された際、自然の水分から発生した。" },
+                    { name: "ウィツィロポチトリ", nativeName: "Huitzilopochtli", location: "メキシコ（中央高地・アステカ伝承）", content: "太陽と戦争を司るアステカの守護神。", origin: "母神コアトリクエが空から降ってきた美しい羽毛を懐に入れたことで妊娠・誕生した。" },
+                    { name: "ククルカン", nativeName: "Kukulkan", location: "メキシコ（ユカタン半島・マヤ伝承）", content: "風や水、輪廻転生を象徴する羽毛ある蛇。", origin: "宇宙の調和と生命の息吹から生み出された。" },
+                    { name: "チャック", nativeName: "Chaac", location: "メキシコ（ユカタン半島・マヤ伝承）", content: "斧を使って雲を叩き、雷と雨を降らせる雨と農業の神。", origin: "方角（東西南北）の象徴と結びついて世界の四隅から発生した。" },
+                    { name: "コアトリクエ", nativeName: "Coatlicue", location: "メキシコ（中央高地・アステカ伝承）", content: "蛇のスカートを穿き、生と死、大地を象徴する偉大な母神。", origin: "大地そのものの化身として、世界の成立とともに顕現した。" },
+                    { name: "イシュチェル", nativeName: "Ixchel", location: "メキシコ（マヤ伝承）", content: "月、医療、妊娠、織物を司る多面的な女神。", origin: "太陽神イツァムナーの伴侶として、天界の光の中から出現した。" },
+                    { name: "シペ・トテック", nativeName: "Xipe Totec", location: "メキシコ（アステカ伝承）", content: "春の芽吹きと再生、貴金属細工を司る神。", origin: "トウモロコシの種が皮を破って発芽する自然現象の神格化。" },
+                    { name: "イツァムナー", nativeName: "Itzamna", location: "メキシコ（マヤ伝承）", content: "天空、昼と夜、知識や書物を司るマヤ最高神の一柱。", origin: "宇宙全体の意識が定着し、万物の支配者として存在した。" }
+                ]
+            },
+            Caribbean: {
+                name: "カリブ海 (Caribbean Sea)",
+                coords: { x: 1350, y: 800 },
+                monsters: [
+                    { name: "ルスカ", nativeName: "Lusca", location: "カリブ海（バハマ周辺）", content: "サメの頭部とタコの触手を持つ、青い洞窟（ブルーホール）に潜む海獣。", origin: "海底の深い闇と激しい潮流の恐怖から生まれた。" },
+                    { name: "スクイアン", nativeName: "Soucouyant", location: "カリブ海諸島", content: "昼間は老女だが、夜になると自分の皮膚を脱ぎ捨て、火の玉となって飛翔し血を吸う妖魔。", origin: "悪霊への誓約と闇の秘術によって人性が損なわれた。" },
+                    { name: "バクー", nativeName: "Bacoo", location: "カリブ海沿岸部", content: "ボトルの中に封印されている、人間に富をもたらすが凶暴化する小型の悪魔。", origin: "邪悪な術士が死者の魂と精霊を瓶の中に閉じ閉じ込めて精製した。" },
+                    { name: "ママン・ドロ", nativeName: "Mama Dlo", location: "カリブ海諸島", content: "上半身は美しく長い髪の女性、下半身は大蛇の姿をした川の怪物。", origin: "川の水源を人間から守るために大地の精霊から生まれた。" },
+                    { name: "ジュムビー", nativeName: "Jumbie", location: "カリブ海全域（タイノおよび諸伝承）", content: "人間を病や不吉に陥れる、特定の形を持たない邪悪な霊全般の総称。", origin: "悪意を持って死んだ者の魂や、供養されなかった死者から発生した。" },
+                    { name: "オピエル", nativeName: "Opiyel", location: "カリブ海（タイノ伝承）", content: "犬の姿をした死者の精霊。夜になると死者の魂を連れて彷徨う。", origin: "生者と死者の世界をつなぐ存在として神々によって作られた。" },
+                    { name: "シグアパ", nativeName: "Ciguapa", location: "カリブ海（ドミニカ等・タイノ起源）", content: "足首が前後逆についており、美しい髪で人を誘惑して森へ引きずり込む怪物。", origin: "山奥の深い自然が持つ「迷い」の力が女性の姿をとった。" },
+                    { name: "マポウリ", nativeName: "Mapouri", location: "カリブ海諸島", content: "樹木の幹に潜み、近づく者に病を感染させる悪霊。", origin: "木の樹液と古代の死者の情念が結合して生まれた。" },
+                    { name: "カランカン", nativeName: "Carancan", location: "カリブ海沿岸", content: "嵐の夜に船員を水中に引きずり込み、船を沈没させる巨大魚。", origin: "荒れ狂う海の波そのものが生命を得て生じた。" },
+                    { name: "ジュカン", nativeName: "Jucan", location: "カリブ海（タイノ伝承）", content: "地下洞窟に潜み、地震を引き起こして地表を陥没させる巨大な泥ミミズの怪物。", origin: "原初の大地がまだ柔らかかった時代に生まれた。" }
+                ],
+                gods: [
+                    { name: "ヨカフ", nativeName: "Yúcahu", location: "カリブ海（タイノ伝承）", content: "トウモロコシやキャッサバの豊作、海の恵みを司る恵みの神。", origin: "宇宙の母神アタベイの胎内から最初に生まれた。" },
+                    { name: "アタベイ", nativeName: "Atabey", location: "カリブ海（タイノ伝承）", content: "大地、淡水、生育、安産を司る偉大な母神（地球の化身）。", origin: "始まりの時代に宇宙の無の中から自然発生した最高母神。" },
+                    { name: "ジュラカン", nativeName: "Juracán", location: "カリブ海（タイノ伝承）", content: "破壊的な嵐や暴風雨（ハリケーンの語源）を巻き起こす怒りの神。", origin: "混乱と調和のバランスを保つため、混沌の気流から誕生した。" },
+                    { name: "グアバンセクス", nativeName: "Guabancex", location: "カリブ海（タイノ伝承）", content: "風と水害を支配し、ジュラカンとともに暴風を操る嵐の女神。", origin: "大気と天候の荒々しいエネルギーから発生した。" },
+                    { name: "ボイナイエル", nativeName: "Boinayel", location: "カリブ海（タイノ伝承）", content: "涙を流すことで地上に恵みの雨をもたらす雨の神。", origin: "人々の飢えを哀れみ、太陽と大地の隙間から生まれた。" },
+                    { name: "マロフ", nativeName: "Marohu", location: "カリブ海（タイノ伝承）", content: "晴天と澄んだ空を司る神（雨神ボイナイエルの双子の兄弟）。", origin: "雲が晴れ渡る空の現象からボイナイエルと同時に誕生した。" },
+                    { name: "マカウンタ", nativeName: "Maquetaurie Guayaba", location: "カリブ海（タイノ伝承）", content: "死者の国（コアイベイ）を統括し、夜の精霊たちを治める死の神。", origin: "最初に死んだ人間の魂が神格化され、死者の指導者となった。" },
+                    { name: "オピエル・グアビラン", nativeName: "Opiyelguabíran", location: "カリブ海（タイノ伝承）", content: "4本足の守護神。亡くなった人々の霊をあの世へ安全に導く神。", origin: "死者への慈悲のために創造神によって与えられた。" },
+                    { name: "イグアナボイナ", nativeName: "Iguanaboina", location: "カリブ海（タイノ伝承）", content: "良好な気候や恵みの風をもたらす、イグアナの姿をした天候神。", origin: "洞窟から生まれて空へ駆け登り、気候を司るようになった。" },
+                    { name: "バイナマ", nativeName: "Bainama", location: "カリブ海（タイノ伝承）", content: "植物の芽生えや作物の成長を保護する農業の神。", origin: "母神アタベイの祝福の光が土に注がれたことで誕生した。" }
+                ]
+            }
+        };
+
+        // State variables
+        let currentScale = 0.8;
+        let currentTranslate = { x: -100, y: -100 };
+        let isDragging = false;
+        let startPan = { x: 0, y: 0 };
+        let activeRegionKey = "USA";
+        let activeTab = "monsters"; // 'monsters' or 'gods'
+
+        // DOM Elements
+        const viewport = document.getElementById('mapViewport');
+        const container = document.getElementById('mapContainer');
+        const markersLayer = document.getElementById('markersLayer');
+
+        const searchInput = document.getElementById('searchInput');
+        const typeFilter = document.getElementById('typeFilter');
+        const regionFilter = document.getElementById('regionFilter');
+
+        const detailDrawer = document.getElementById('detailDrawer');
+        const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+        const drawerBadge = document.getElementById('drawerBadge');
+        const drawerRegionTitle = document.getElementById('drawerRegionTitle');
+        const tabMonsters = document.getElementById('tabMonsters');
+        const tabDeities = document.getElementById('tabDeities');
+        const drawerContent = document.getElementById('drawerContent');
+
+        const refModal = document.getElementById('refModal');
+        const openRefBtn = document.getElementById('openRefBtn');
+        const closeRefBtn = document.getElementById('closeRefBtn');
+        const closeRefModalBtn = document.getElementById('closeRefModalBtn');
+
+        // Apply Transform Helper
+        function updateTransform() {
+            container.style.transform = `translate(${currentTranslate.x}px, ${currentTranslate.y}px) scale(${currentScale})`;
+        }
+
+        // Initialize Map View Centering
+        function centerMap() {
+            const viewportWidth = viewport.clientWidth;
+            const viewportHeight = viewport.clientHeight;
+            currentScale = viewportWidth < 768 ? 0.45 : 0.75;
+            currentTranslate.x = (viewportWidth - 1800 * currentScale) / 2;
+            currentTranslate.y = (viewportHeight - 1300 * currentScale) / 2;
+            updateTransform();
+        }
+
+        // Panning Event Listeners
+        viewport.addEventListener('mousedown', (e) => {
+            if (e.target.closest('#detailDrawer') || e.target.closest('#refModal')) return;
+            isDragging = true;
+            startPan = { x: e.clientX - currentTranslate.x, y: e.clientY - currentTranslate.y };
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            currentTranslate.x = e.clientX - startPan.x;
+            currentTranslate.y = e.clientY - startPan.y;
+            updateTransform();
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        // Touch Dragging Support
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                startPan = { x: e.touches[0].clientX - currentTranslate.x, y: e.touches[0].clientY - currentTranslate.y };
+            }
+        });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (isDragging && e.touches.length === 1) {
+                currentTranslate.x = e.touches[0].clientX - startPan.x;
+                currentTranslate.y = e.touches[0].clientY - startPan.y;
+                updateTransform();
+            }
+        });
+
+        viewport.addEventListener('touchend', () => { isDragging = false; });
+
+        // Wheel Zoom Support
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+            const newScale = Math.min(Math.max(0.3, currentScale * zoomFactor), 2.5);
+            
+            // Zoom centered on cursor
+            const rect = viewport.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            currentTranslate.x = mouseX - (mouseX - currentTranslate.x) * (newScale / currentScale);
+            currentTranslate.y = mouseY - (mouseY - currentTranslate.y) * (newScale / currentScale);
+            currentScale = newScale;
+
+            updateTransform();
+        }, { passive: false });
+
+        // Zoom Buttons
+        document.getElementById('zoomInBtn').addEventListener('click', () => {
+            currentScale = Math.min(2.5, currentScale * 1.25);
+            updateTransform();
+        });
+
+        document.getElementById('zoomOutBtn').addEventListener('click', () => {
+            currentScale = Math.max(0.3, currentScale / 1.25);
+            updateTransform();
+        });
+
+        document.getElementById('resetViewBtn').addEventListener('click', centerMap);
+
+        function renderMarkers() {
+            markersLayer.innerHTML = '';
+
+            Object.keys(mythologyData).forEach(key => {
+                const region = mythologyData[key];
+                const marker = document.createElement('div');
+                marker.className = 'absolute cursor-pointer pointer-events-auto transform -translate-x-1/2 -translate-y-1/2 group';
+                marker.style.left = `${region.coords.x}px`;
+                marker.style.top = `${region.coords.y}px`;
+
+                marker.innerHTML = `
+                    <div class="relative flex items-center justify-center">
+                        <div class="absolute w-12 h-12 rounded-full bg-accentRed/30 marker-pulse"></div>
+                        <div class="w-10 h-10 rounded-full bg-papyrus border-2 border-inkDark shadow-xl flex items-center justify-center group-hover:scale-110 transition">
+                            <i class="fa-solid fa-feather-pointed text-accentRed text-lg"></i>
+                        </div>
+                        <div class="absolute top-12 bg-papyrus/95 text-inkDark font-bold px-3 py-1 rounded-full border border-inkLight/40 text-xs shadow-md whitespace-nowrap group-hover:bg-accentRed group-hover:text-white transition">
+                            ${region.name} (20)
+                        </div>
+                    </div>
+                `;
+
+                marker.addEventListener('click', () => {
+                    openRegionDrawer(key);
+                });
+
+                markersLayer.appendChild(marker);
+            });
+        }
+
+        function openRegionDrawer(regionKey) {
+            activeRegionKey = regionKey;
+            const region = mythologyData[regionKey];
+
+            drawerRegionTitle.textContent = region.name;
+            renderDrawerContent();
+            
+            detailDrawer.classList.remove('translate-x-full');
+        }
+
+        function renderDrawerContent() {
+            const region = mythologyData[activeRegionKey];
+            const searchKeyword = searchInput.value.trim().toLowerCase();
+            const filterTypeVal = typeFilter.value;
+
+            drawerContent.innerHTML = '';
+
+            // Update Tab Highlight
+            if (activeTab === 'monsters') {
+                tabMonsters.className = "flex-1 py-2.5 font-bold text-sm text-center border-b-2 border-accentRed text-accentRed bg-parchment/50";
+                tabDeities.className = "flex-1 py-2.5 font-bold text-sm text-center text-inkLight hover:text-inkDark";
+                drawerBadge.textContent = "怪物 (10体)";
+                drawerBadge.className = "px-2 py-0.5 rounded text-xs text-white font-bold bg-accentRed";
+            } else {
+                tabDeities.className = "flex-1 py-2.5 font-bold text-sm text-center border-b-2 border-accentBlue text-accentBlue bg-parchment/50";
+                tabMonsters.className = "flex-1 py-2.5 font-bold text-sm text-center text-inkLight hover:text-inkDark";
+                drawerBadge.textContent = "神々 (10柱)";
+                drawerBadge.className = "px-2 py-0.5 rounded text-xs text-white font-bold bg-accentBlue";
+            }
+
+            const items = activeTab === 'monsters' ? region.monsters : region.gods;
+
+            const filteredItems = items.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchKeyword) ||
+                                     item.nativeName.toLowerCase().includes(searchKeyword) ||
+                                     item.location.toLowerCase().includes(searchKeyword) ||
+                                     item.content.toLowerCase().includes(searchKeyword) ||
+                                     item.origin.toLowerCase().includes(searchKeyword);
+                
+                const matchesType = (filterTypeVal === 'all') ||
+                                    (filterTypeVal === 'monster' && activeTab === 'monsters') ||
+                                    (filterTypeVal === 'god' && activeTab === 'gods');
+
+                return matchesSearch && matchesType;
+            });
+
+            if (filteredItems.length === 0) {
+                drawerContent.innerHTML = `
+                    <div class="text-center py-10 text-inkLight">
+                        <i class="fa-solid fa-compass-drafting text-3xl mb-2"></i>
+                        <p class="text-sm">該当する伝承が見つかりませんでした。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredItems.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-parchment border border-inkLight/30 rounded-lg p-4 shadow-sm hover:shadow-md transition space-y-2";
+
+                const isGod = activeTab === 'gods';
+                const badgeColor = isGod ? "text-accentBlue bg-accentBlue/10 border-accentBlue/30" : "text-accentRed bg-accentRed/10 border-accentRed/30";
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between border-b border-inkLight/20 pb-2">
+                        <div>
+                            <h3 class="font-bold text-lg text-inkDark flex items-center gap-2">
+                                <span class="text-xs px-2 py-0.5 rounded border ${badgeColor}">#${idx + 1}</span>
+                                ${item.name}
+                            </h3>
+                            <p class="text-xs text-inkLight italic">${item.nativeName}</p>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-inkLight space-y-1">
+                        <p class="flex items-start gap-1">
+                            <i class="fa-solid fa-map-pin text-accentRed mt-0.5"></i>
+                            <span><strong>場所:</strong> ${item.location}</span>
+                        </p>
+                    </div>
+
+                    <div class="bg-papyrus p-2.5 rounded border border-inkLight/20 text-xs text-inkDark leading-relaxed">
+                        <p class="font-bold text-inkLight mb-1 flex items-center gap-1">
+                            <i class="fa-solid fa-scroll"></i> 内容:
+                        </p>
+                        ${item.content}
+                    </div>
+
+                    <div class="bg-agedGold/20 p-2.5 rounded border border-sand/40 text-xs text-inkDark leading-relaxed">
+                        <p class="font-bold text-inkLight mb-1 flex items-center gap-1">
+                            <i class="fa-solid fa-dna"></i> 誕生経緯:
+                        </p>
+                        ${item.origin}
+                    </div>
+                `;
+
+                drawerContent.appendChild(card);
+            });
+        }
+
+        // Drawer Tabs Control
+        tabMonsters.addEventListener('click', () => {
+            activeTab = 'monsters';
+            renderDrawerContent();
+        });
+
+        tabDeities.addEventListener('click', () => {
+            activeTab = 'gods';
+            renderDrawerContent();
+        });
+
+        closeDrawerBtn.addEventListener('click', () => {
+            detailDrawer.classList.add('translate-x-full');
+        });
+
+        // Search & Filter Listeners
+        searchInput.addEventListener('input', () => {
+            if (!detailDrawer.classList.contains('translate-x-full')) {
+                renderDrawerContent();
+            }
+        });
+
+        typeFilter.addEventListener('change', () => {
+            const val = typeFilter.value;
+            if (val === 'monster') activeTab = 'monsters';
+            if (val === 'god') activeTab = 'gods';
+            renderDrawerContent();
+        });
+
+        regionFilter.addEventListener('change', () => {
+            const regionVal = regionFilter.value;
+            if (regionVal !== 'all') {
+                openRegionDrawer(regionVal);
+                // Pan map to region center
+                const coords = mythologyData[regionVal].coords;
+                currentTranslate.x = viewport.clientWidth / 2 - coords.x * currentScale;
+                currentTranslate.y = viewport.clientHeight / 2 - coords.y * currentScale;
+                updateTransform();
+            }
+        });
+
+        // References Modal Control
+        openRefBtn.addEventListener('click', () => refModal.classList.remove('hidden'));
+        closeRefBtn.addEventListener('click', () => refModal.classList.add('hidden'));
+        closeRefModalBtn.addEventListener('click', () => refModal.classList.add('hidden'));
+
+        window.onload = function() {
+            centerMap();
+            renderMarkers();
+            // Default open USA on initial load
+            setTimeout(() => {
+                openRegionDrawer("USA");
+            }, 500);
+        };
+
+        window.addEventListener('resize', centerMap);
+    </script>
+</body>
+</html>
